@@ -24,35 +24,57 @@
     const openTab = function () {
         let notDone = $('table').find("tr").filter(function (_) {
             let progress = $($(this).find("td")[2]).text().split('/');
-            return !($(this).find("a").length === 0 || progress[0] === progress[1]);
+            return !($(this).find("a").length === 0 || progress[0].trim() === progress[1].trim());
         });
         if (notDone.length === 0) {
             window.alert('This page is finished, please navigate to the next page.');
             return;
         }
-        let disabled = GM_getValue("config").disabled;
+        let config = GM_getValue("config");
+        config.stopped = false;
+        GM_setValue("config", config);
         function tab(index) {
+            if (GM_getValue("config").stopped) return; //check if stopped state has changed
             if (index === notDone.length) {
+                stopped();
                 window.location.reload();
                 return;
             };
-            if (disabled) return;
             let element = notDone[index];
             let url = $(element).find("a").attr("href");
-            let tabControl = GM_openInTab(url, { active: false, insert: true, });
+            let tabControl = GM_openInTab(url, { active: true, insert: true, });
             tabControl.onclose = function () { tab(++index); };
         };
-        tab(0)
+        tab(0);
     };
 
-    const disable = function () {
+    const startSession = function () {
+        if (!GM_getValue("config").stopped) {
+            window.alert('The plugin is (possibly) already running. Please stop it first.');
+            return;
+        }
+        openTab();
+    };
+
+    const stopped = function () {
         let config = GM_getValue("config");
-        config.disabled = $(this).prop('checked');
+        config.stopped = true;
         GM_setValue("config", config);
     };
 
     const doMC = function (randomDelay) {
         return new Promise(function doMC(resolve) {
+            const end = function () {
+                try {
+                    checkAnswer();
+                } finally {
+                    console.log('%cSubmitted! ', 'color: #00FF00; font-size: large');
+                    // $('html, body').animate({
+                    //     scrollTop: 0
+                    // }, 100);
+                    resolve();
+                }
+            }
             let counter = 0;
             $(".each_choices").each(function () {
                 var obj = $(this);
@@ -84,18 +106,6 @@
                             } else {
                                 end();
                             }
-
-                            const end = function () {
-                                try {
-                                    checkAnswer();
-                                } finally {
-                                    console.log('%cSubmitted! ', 'color: #00FF00; font-size: large');
-                                    $('html, body').animate({
-                                        scrollTop: 0
-                                    }, 100);
-                                    resolve();
-                                }
-                            }
                         }
                     }
                 });
@@ -104,11 +114,11 @@
     };
 
     if (!GM_getValue("config")) {
-        GM_setValue("config", { randomDelay: false });
+        GM_setValue("config", { stopped: true, randomDelay: false });
     }
     let panel;
     if (window.location.href.includes("htmlexercise")) {
-        if (GM_getValue("config").disabled) {
+        if (GM_getValue("config").stopped) {
             return;
         };
         let nextURL = null;
@@ -151,11 +161,11 @@
             }
         }
     } else if (window.location.href.includes("report")) {
-        panel = $("<aside style='position:fixed;top:50px;left:0px;background-color:white;padding:10px;border:1px solid;max-width:400px;z-index:99999;'><div><h2>AutoCompleteiLearner panel</h2><input type=\"checkbox\" id=\"randomDelay\" name=\"randomDelay\" ><label for=\"random\">&ensp;Submit answers with a slight and random delay</label><br><input type=\"checkbox\" id=\"disable\" value=\"Disable\"><label for=\"disable\">&ensp;Disable</label><br><input type=\"button\" id=\"start\" value=\"Start\"><br></div>");
+        panel = $("<aside style='position:fixed;top:50px;left:0px;background-color:white;padding:10px;border:1px solid;max-width:400px;z-index:99999;'><div><h2>AutoCompleteiLearner panel</h2><input type=\"checkbox\" id=\"randomDelay\" name=\"randomDelay\" ><label for=\"random\">&ensp;Submit answers with a slight and random delay</label><br><input type=\"button\" id=\"start\" value=\"Start\">&ensp;<input type=\"button\" id=\"stop\" value=\"Stop\"><br></div>");
         panel.find("input#randomDelay").prop("checked", GM_getValue("config").randomDelay);
         panel.appendTo("body");
-        panel.find('input#start').on("click", openTab);
-        panel.find('input#disable').on("click", disable);
+        panel.find('input#start').on("click", startSession);
+        panel.find('input#stop').on("click", stopped);
         panel.find('input#random').on("click", clickedRandom);
         console.log('appended panel');
     } else {
