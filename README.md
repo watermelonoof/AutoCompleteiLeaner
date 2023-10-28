@@ -7,7 +7,7 @@ For 智X中文平台. Currently for MC only.
 2. Install Violentmonkey extension on Chrome [link here](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag)
 3. Click `Manage extension`, turn on `Allow access to file URLs`
 4. Drag and drop the file from **step 1** onto Chrome
-5. Open 智X中文平台. If the installation is successful you should see a panel saying the plugin is activated as shown below
+5. Open 智X中文平台. If the installation is successful you should see a panel saying the plugin is activated as shown below<br/><br/>
 ![Plugin activated](images/activated.png)
 
 # Usage
