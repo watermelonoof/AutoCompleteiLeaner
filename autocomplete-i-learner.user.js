@@ -22,17 +22,19 @@
     };
 
     const openTab = function () {
-        let notDone = $('table').find("tr").filter(function (_) {
-            let progress = $($(this).find("td")[2]).text().split('/');
-            return !($(this).find("a").length === 0 || progress[0].trim() === progress[1].trim());
-        });
-        if (notDone.length === 0) {
-            window.alert('This page is finished, please navigate to the next page.');
-            return;
-        }
         let config = GM_getValue("config");
         config.stopped = false;
         GM_setValue("config", config);
+        
+        let notDone = $('table').find("tr").filter(function (_) {
+            let progress = $($(this).find("td")[2]).text().split('/');
+            if (progress.length < 2) return false;
+            return !($(this).find("a").length === 0 || progress[0].trim() === progress[1].trim());
+        });
+        if (notDone.length === 0) {
+            window.alert('This page is completed, please navigate to the next page. If not, this means the plugin does not support spamming. Please click on individual exercises manually.');
+            return;
+        }
         function tab(index) {
             if (GM_getValue("config").stopped) return; //check if stopped state has changed
             if (index === notDone.length) {
