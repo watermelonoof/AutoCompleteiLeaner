@@ -1,5 +1,6 @@
-# AutoCompleteiLeaner
-For 智X中文平台. Currently for MC only.
+# This project is solely for educational purposes. I condemn any illegal practices.
+---
+For 智X中文平台. Multiple-choice questions only.
 [Video tutorial](https://www.youtube.com/watch?v=cMhIG1ozJfU)
 
 # Installation
